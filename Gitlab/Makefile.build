@@ -27,7 +27,7 @@ MKMF_SRC = $(SRC_DIR)/mkmf
 LIST_PATHS = $(MKMF_SRC)/bin/list_paths
 MKMF = $(MKMF_SRC)/bin/mkmf
 BUILD = build
-SITE = ncrc
+SITE = cheyenne
 
 # Local relative paths to source available behind GFDL firewall
 ICE_PARAM_SRC=$(SRC_DIR)/ice_param
@@ -41,7 +41,8 @@ AM2_REPOS=$(AM2)/atmos_drivers $(AM2)/atmos_fv_dynamics $(AM2)/atmos_shared_am3
 SIS1_SRC=$(SRC_DIR)/sis1
 
 SHELL = bash
-COMPILERS = gnu intel pgi
+#COMPILERS = gnu intel pgi
+COMPILERS = intel 
 MODES = repro debug coverage openmp
 LOG = > log
 
@@ -64,13 +65,13 @@ $(foreach c, $(COMPILERS),$(foreach m,$(MODES),$(eval $(call make-env-dep,$c,$m)
 ifeq ($(SITE),ncrc)
 $(BUILD)/gnu/env:
 	mkdir -p $(@D)
-	echo 'module unload PrgEnv-pgi PrgEnv-intel PrgEnv-gnu ; module load PrgEnv-gnu; module unload netcdf gcc; module load gcc/5.3.0 cray-hdf5 cray-netcdf' > $@
+#GMM	echo 'module unload PrgEnv-pgi PrgEnv-intel PrgEnv-gnu ; module load PrgEnv-gnu; module unload netcdf gcc; module load gcc/5.3.0 cray-hdf5 cray-netcdf' > $@
 $(BUILD)/intel/env:
 	mkdir -p $(@D)
-	echo 'module unload PrgEnv-pgi PrgEnv-intel PrgEnv-gnu; module load PrgEnv-intel; module unload netcdf intel; module load intel/16.0.3.210 cray-hdf5 cray-netcdf' > $@
+#GMM	echo 'module unload PrgEnv-pgi PrgEnv-intel PrgEnv-gnu; module load PrgEnv-intel; module unload netcdf intel; module load intel/16.0.3.210 cray-hdf5 cray-netcdf' > $@
 $(BUILD)/pgi/env:
 	mkdir -p $(@D)
-	echo 'module unload PrgEnv-intel ; module load PrgEnv-pgi; module unload netcdf pgi; module load pgi/16.5.0 cray-hdf5 cray-netcdf' > $@
+#GMM	echo 'module unload PrgEnv-intel ; module load PrgEnv-pgi; module unload netcdf pgi; module load pgi/16.5.0 cray-hdf5 cray-netcdf' > $@
 endif
 
 # path_names:
@@ -181,6 +182,7 @@ $(eval $(call compile,mom6/,libmom6.a,../../../env,))
 
 # build/compiler/mode/mom6_memory/mom6_configuration/MOM6
 $(BUILD)/%/ocean_only/path_names: LIST_PATHS_ARGS = $(MOM6_SRC)/config_src/solo_driver/
+#GMM $(eval $(call compile,,MOM6,$$(ENV_SCRIPT),))
 $(eval $(call compile,,MOM6,$$(ENV_SCRIPT),))
 
 # Generate lists of variables and dependencies for SIS2 libraries
@@ -188,7 +190,7 @@ $(eval $(call compile,,MOM6,$$(ENV_SCRIPT),))
 define sis2-variables
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/path_names: $(SIS2_SRC)/src/* $(SIS2_SRC)/config_src/$(3)/* $(MOM6_SRC)/src/framework/MOM_memory_macros.h
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/path_names: LIST_PATHS_ARGS = $(SIS2_SRC)/src/ $(SIS2_SRC)/config_src/$(3)/ $(MOM6_SRC)/src/framework/MOM_memory_macros.h
-$(BUILD)/$(1)/$(2)/$(3)/$(4)/Makefile: CPP_DEFS = -D_FILE_VERSION="`../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(1)$(STATS_COMPILER_VER)\"
+$(BUILD)/$(1)/$(2)/$(3)/$(4)/Makefile: CPP_DEFS = -D_FILE_VERSION=\"`../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`\" -DSTATSLABEL=\"$(STATS_PLATFORM)$(1)$(STATS_COMPILER_VER)\"
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/libsis2.a: $(BUILD)/$(1)/$(2)/icebergs/libicebergs.a $(BUILD)/$(1)/$(2)/ice_ocean_extras/libice_ocean_extras.a
 .SECONDARY: $(BUILD)/$(1)/$(2)/$(3)/$(4)/path_names
 .SECONDARY: $(BUILD)/$(1)/$(2)/$(3)/$(4)/Makefile
@@ -201,7 +203,7 @@ $(foreach c,$(COMPILERS),$(foreach m,$(MODES),$(foreach d,dynamic dynamic_symmet
 define libmom6-variables
 $(BUILD)/$(1)/$(2)/$(3)/mom6/path_names: LIST_PATHS_ARGS = $(MOM6_SRC)/src/*/ $(MOM6_SRC)/src/*/*/ $(MOM6_SRC)/config_src/$(3)/ $(MOM6_SRC)/config_src/coupled_driver/
 $(BUILD)/$(1)/$(2)/$(3)/mom6/path_names: $(MOM6_SRC)/src/*/* $(MOM6_SRC)/src/*/*/* $(MOM6_SRC)/config_src/$(3)/* $(MOM6_SRC)/config_src/coupled_driver/*
-$(BUILD)/$(1)/$(2)/$(3)/mom6/Makefile: CPP_DEFS += -D_FILE_VERSION="`../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(1)$(STATS_COMPILER_VER)\"
+$(BUILD)/$(1)/$(2)/$(3)/mom6/Makefile: CPP_DEFS += -D_FILE_VERSION=\"`../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`\" -DSTATSLABEL=\"$(STATS_PLATFORM)$(1)$(STATS_COMPILER_VER)\"
 $(BUILD)/$(1)/$(2)/$(3)/mom6/libmom6.a: $(BUILD)/$(1)/$(2)/fms/libfms.a
 .SECONDARY: $(BUILD)/$(1)/$(2)/$(3)/mom6/path_names
 .SECONDARY: $(BUILD)/$(1)/$(2)/$(3)/mom6/Makefile
@@ -215,7 +217,7 @@ define mom6-ocean-only-variables
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/path_names: LIST_PATHS_ARGS += $(MOM6_SRC)/src/*/ $(MOM6_SRC)/src/*/*/ $(MOM6_SRC)/config_src/$(3)/
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/path_names: $(MOM6_SRC)/src/*/* $(MOM6_SRC)/src/*/*/* $(MOM6_SRC)/config_src/$(3)/* $(MOM6_SRC)/config_src/solo_driver/*
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/Makefile: MKMF_OPTS = -p MOM6 -o '-I../../fms' -l '$$(LIBS)' -c '$$(CPP_DEFS)'
-$(BUILD)/$(1)/$(2)/$(3)/$(4)/Makefile: CPP_DEFS += -D_FILE_VERSION="`../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`"
+$(BUILD)/$(1)/$(2)/$(3)/$(4)/Makefile: CPP_DEFS += -D_FILE_VERSION=\"`../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`\"
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/Makefile: CPP_DEFS += -DSTATSLABEL=\"$(STATS_PLATFORM)$(1)$(STATS_COMPILER_VER)\"
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/Makefile: LIBS = -L../../fms -lfms
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/MOM6: $(BUILD)/$(1)/$(2)/fms/libfms.a
@@ -234,7 +236,7 @@ $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/path_names: $(MOM6_SRC)/src/*/* $(MOM6_SRC)/src/*
 $(BUILD)/$(1)/$(2)/$(3)/ocean_only/%/path_names: $(MOM6_SRC)/config_src/solo_driver/*
 $(foreach e,$(wildcard $(CONFIGS)/$(4)/*),$(eval $(call mom6-static-mom-memory,$(1),$(2),$(3),$(4),$(e))))
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/Makefile: MKMF_OPTS = -p MOM6 -o '-I../../../fms' -l '$$(LIBS)' -c '$$(CPP_DEFS)'
-$(BUILD)/$(1)/$(2)/$(3)/$(4)/%/Makefile: CPP_DEFS += -D_FILE_VERSION="`../../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`"
+$(BUILD)/$(1)/$(2)/$(3)/$(4)/%/Makefile: CPP_DEFS += -D_FILE_VERSION=\"`../../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`\"
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/Makefile: CPP_DEFS += -DSTATSLABEL=\"$(STATS_PLATFORM)$(1)$(STATS_COMPILER_VER)\"
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/Makefile: LIBS += -L../../../fms -lfms
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/MOM6: $(BUILD)/$(1)/$(2)/fms/libfms.a
