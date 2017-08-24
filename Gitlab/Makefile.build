@@ -42,7 +42,7 @@ SIS1_SRC=$(SRC_DIR)/sis1
 
 SHELL = bash
 #COMPILERS = gnu intel pgi
-COMPILERS = intel 
+COMPILERS = intel
 MODES = repro debug coverage openmp
 LOG = > log
 
@@ -234,6 +234,7 @@ define mom6-static-variables
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/path_names: LIST_PATHS_ARGS += $(MOM6_SRC)/src/*/ $(MOM6_SRC)/src/*/*/
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/path_names: $(MOM6_SRC)/src/*/* $(MOM6_SRC)/src/*/*/*
 $(BUILD)/$(1)/$(2)/$(3)/ocean_only/%/path_names: $(MOM6_SRC)/config_src/solo_driver/*
+$(BUILD)/$(1)/$(2)/$(3)/ocean_only/%/path_names: LIST_PATHS_ARGS += $(MOM6_SRC)/config_src/solo_driver/
 $(foreach e,$(wildcard $(CONFIGS)/$(4)/*),$(eval $(call mom6-static-mom-memory,$(1),$(2),$(3),$(4),$(e))))
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/Makefile: MKMF_OPTS = -p MOM6 -o '-I../../../fms' -l '$$(LIBS)' -c '$$(CPP_DEFS)'
 $(BUILD)/$(1)/$(2)/$(3)/$(4)/%/Makefile: CPP_DEFS += -D_FILE_VERSION=\"`../../../../../../$(MKMF_SRC)/bin/git-version-string $$$$<`\"
@@ -365,4 +366,4 @@ clean_libs:
 clean_make:
 	find $(BUILD)/ -name "path_names*" -o -name "Makefile" -exec rm {} \;
 clean:
-	rm -rf $(BUILD) 
+	rm -rf $(BUILD)
